@@ -1,0 +1,42 @@
+#!/bin/bash
+# Git Account Switcher
+
+switch_to_0xedev() {
+    git config user.name "0xedev"
+    git config user.email "oxdeve@gmail.com"
+    echo "✅ Switched to 0xedev account"
+    echo "   Name: $(git config user.name)"
+    echo "   Email: $(git config user.email)"
+}
+
+switch_to_adefolalu() {
+    git config user.name "Adefolalu"
+    git config user.email "tradebridge001@gmail.com"
+    echo "✅ Switched to Adefolalu account"
+    echo "   Name: $(git config user.name)"
+    echo "   Email: $(git config user.email)"
+}
+
+show_current() {
+    echo "Current Git Account:"
+    echo "   Name: $(git config user.name)"
+    echo "   Email: $(git config user.email)"
+}
+
+case "$1" in
+    0xedev)
+        switch_to_0xedev
+        ;;
+    adefolalu)
+        switch_to_adefolalu
+        ;;
+    current)
+        show_current
+        ;;
+    *)
+        echo "Git Account Switcher"
+        echo "Usage: git-switch [0xedev|adefolalu|current]"
+        echo ""
+        show_current
+        ;;
+esac
