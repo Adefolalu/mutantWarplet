@@ -3,6 +3,9 @@ import type { NFTData } from "../hooks/useMutation";
 import { blobFromUrl, uploadImageBlob, uploadMetadata } from "../services/ipfs";
 import { mintMutant } from "../services/mintService";
 import { ImageGenerationService } from "../services/imageGeneration";
+import { useReadContract } from "wagmi";
+import { mutantWarplet } from "../constants/Abi";
+import { formatEther } from "viem";
 
 interface MutationComponentProps {
   nftData?: NFTData;
@@ -21,6 +24,13 @@ export function MutationComponent({ nftData }: MutationComponentProps) {
   const [error, setError] = useState<string | null>(null);
 
   const imageService = useMemo(() => new ImageGenerationService(), []);
+
+  // Read the mutation fee from the contract
+  const { data: mutationFee } = useReadContract({
+    address: mutantWarplet.address as `0x${string}`,
+    abi: mutantWarplet.abi,
+    functionName: "mutationFee",
+  }) as { data: bigint | undefined };
 
   useEffect(() => {
     if (!nftData?.image) return;
@@ -122,9 +132,7 @@ export function MutationComponent({ nftData }: MutationComponentProps) {
                 <div className="text-center">
                   <div className="inline-block w-12 h-12 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mb-3"></div>
                   <p className="text-sm font-medium text-purple-600">
-                    {status === "error"
-                      ? "Generation failed"
-                      : "Generating magic..."}
+                    {status === "error" ? "Mutation failed" : "Mutating..."}
                   </p>
                   {error && (
                     <p className="text-xs text-red-500 mt-2">{error}</p>
@@ -153,23 +161,28 @@ export function MutationComponent({ nftData }: MutationComponentProps) {
             }`}
           >
             {status === "ready" ? (
-              <span className="flex items-center justify-center gap-2">
-                <svg
-                  className="w-5 h-5"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                Mint This Mutation
+              <span className="flex flex-col items-center justify-center gap-1">
+                <span className="flex items-center gap-2">
+                  <svg
+                    className="w-5 h-5"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  Mint Mutant
+                </span>
+                <span className="text-xs font-normal opacity-90">
+                  {mutationFee ? formatEther(mutationFee) : "0.00037"} ETH
+                </span>
               </span>
             ) : (
-              "Generating..."
+              "Mutating..."
             )}
           </button>
         </div>

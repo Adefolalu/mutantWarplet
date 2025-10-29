@@ -37,7 +37,7 @@ export class ImageGenerationService {
     // If we have Gemini API, use it for native image generation
     if (this.geminiAI && imageUrl) {
       try {
-        console.log("🎨 Generating mutated image with Gemini...");
+        console.log("🎨 Generating mutated image with ...");
 
         const config = {
           responseModalities: ["IMAGE", "TEXT"],
@@ -70,7 +70,7 @@ export class ImageGenerationService {
                 },
               },
               {
-                text: `Create a cyberpunk mutant version of this character same color theme tho and unchanged background`,
+                text: `Transform this character into a HEAVILY MUTATED cyberpunk creature. Make DRAMATIC changes to the CHARACTER ONLY: add cybernetic implants, glowing neon circuits, biomechanical limbs, mutated features, electric energy effects, and futuristic tech enhancements. The character should look significantly different and more aggressive/cyberpunk. IMPORTANT: Keep the background EXACTLY the same but apply color inversion effect and increase saturation/vibrancy to make it pop. Only mutate the character, not the background.`,
               },
             ],
           },
