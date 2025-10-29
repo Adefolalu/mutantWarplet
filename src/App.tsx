@@ -15,13 +15,13 @@ export default function App() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-[#1a5f7a]">
       <div className="container mx-auto py-6 px-4 max-w-md">
-        <header className="text-center mb-8">
-          <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 mb-1 tracking-tight">
-            🧬 Mutant Warplet
+        <header className="text-center mb-6">
+          <h1 className="text-2xl font-bold text-[#2596be] mb-1 tracking-tight drop-shadow-[0_2px_8px_rgba(37,150,190,0.3)]">
+            Mutant Warplet
           </h1>
-          <p className="text-xs text-purple-400 font-medium">
+          <p className="text-[10px] text-[#2596be]/80 font-semibold tracking-widest uppercase">
             Evolve • Mutate • Mint
           </p>
         </header>
@@ -129,9 +129,12 @@ function WarpletMutator() {
   if (farcasterContext.isLoading || isLoading) {
     return (
       <div className="w-full">
-        <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl p-8 text-center">
-          <div className="inline-block w-12 h-12 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mb-3"></div>
-          <p className="text-sm font-medium text-purple-600">
+        <div className="bg-gradient-to-br from-slate-800/95 via-slate-900/95 to-[#1a5f7a]/90 backdrop-blur-2xl rounded-3xl shadow-[0_8px_32px_rgba(37,150,190,0.25)] p-10 text-center border border-[#2596be]/30">
+          <div className="relative inline-block mb-4">
+            <div className="w-14 h-14 border-[3px] border-[#2596be]/30 rounded-full absolute"></div>
+            <div className="w-14 h-14 border-[3px] border-[#2596be] border-t-transparent rounded-full animate-spin"></div>
+          </div>
+          <p className="text-sm font-semibold text-[#2596be] tracking-wide">
             Loading your Warplet...
           </p>
         </div>
@@ -143,9 +146,9 @@ function WarpletMutator() {
   if (error) {
     return (
       <div className="w-full">
-        <div className="bg-red-50 border-2 border-red-200 rounded-3xl p-6 text-center">
-          <p className="text-red-600 font-medium mb-2">⚠️ {error}</p>
-          <p className="text-xs text-red-500">
+        <div className="bg-gradient-to-br from-red-900/80 to-red-800/70 border-2 border-red-500/50 rounded-3xl p-8 text-center shadow-[0_8px_24px_rgba(239,68,68,0.3)]">
+          <p className="text-red-300 font-semibold mb-2">⚠️ {error}</p>
+          <p className="text-xs text-red-400 font-medium">
             FID: {farcasterContext.fid || "Not detected"}
           </p>
         </div>
@@ -157,11 +160,11 @@ function WarpletMutator() {
   if (!isConnected) {
     return (
       <div className="w-full">
-        <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl p-8 text-center">
-          <p className="text-purple-600 font-medium mb-4">
+        <div className="bg-gradient-to-br from-slate-800/95 via-slate-900/95 to-[#1a5f7a]/90 backdrop-blur-2xl rounded-3xl shadow-[0_8px_32px_rgba(37,150,190,0.25)] p-10 text-center border border-[#2596be]/30">
+          <p className="text-[#2596be] font-semibold mb-4 text-base">
             Connect your wallet to mutate your Warplet
           </p>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-[#2596be]/70 font-medium">
             Your FID: {farcasterContext.fid || "Loading..."}
           </p>
         </div>

@@ -72,6 +72,31 @@ export function MutationComponent({ nftData }: MutationComponentProps) {
 
   if (!nftData) return null;
 
+  const handleRemutate = async () => {
+    setStatus("generating");
+    setError(null);
+    setResult(null);
+
+    try {
+      const img = await imageService.generateMutatedImage({
+        prompt: "cyberpunk mutant",
+        imageUrl: nftData.image,
+        strength: 0.75,
+        negativePrompt: "",
+      });
+
+      setResult({
+        mutatedImageUrl: img.imageUrl,
+        imageGenerationService: img.service,
+      });
+      setStatus("ready");
+    } catch (e: any) {
+      console.error("Re-mutation failed:", e);
+      setError(e?.message || "Failed to generate mutation");
+      setStatus("error");
+    }
+  };
+
   const handleProceedToMint = async () => {
     try {
       if (!result || status !== "ready") return;
@@ -122,49 +147,77 @@ export function MutationComponent({ nftData }: MutationComponentProps) {
 
   return (
     <div className="relative">
-      {/* Mobile-optimized card with glassmorphism effect */}
-      <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-white/20">
+      {/* Elite precision card with #2596be theme and dark background */}
+      <div className="relative bg-gradient-to-br from-slate-800/95 via-slate-900/95 to-[#1a5f7a]/90 backdrop-blur-2xl rounded-3xl shadow-[0_8px_32px_rgba(37,150,190,0.25)] overflow-hidden border border-[#2596be]/30">
+        {/* Subtle top accent line */}
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#2596be] to-transparent"></div>
+
         {/* Image container with fixed aspect ratio */}
         <div className="relative w-full" style={{ paddingBottom: "100%" }}>
-          <div className="absolute inset-0 flex items-center justify-center p-6">
+          <div className="absolute inset-0 flex items-center justify-center p-8">
             {status !== "ready" || !result ? (
-              <div className="w-full h-full bg-gradient-to-br from-purple-100 to-blue-100 rounded-2xl animate-pulse flex items-center justify-center">
+              <div className="w-full h-full bg-gradient-to-br from-slate-700/50 via-slate-800/50 to-[#1a5f7a]/50 rounded-2xl flex items-center justify-center border border-[#2596be]/20 backdrop-blur-sm">
                 <div className="text-center">
-                  <div className="inline-block w-12 h-12 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mb-3"></div>
-                  <p className="text-sm font-medium text-purple-600">
-                    {status === "error" ? "Mutation failed" : "Mutating..."}
+                  <div className="relative inline-block mb-4">
+                    <div className="w-16 h-16 border-[3px] border-[#2596be]/30 rounded-full absolute"></div>
+                    <div className="w-16 h-16 border-[3px] border-[#2596be] border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                  <p className="text-sm font-semibold text-[#2596be] tracking-wide">
+                    {status === "error" ? "MUTATION FAILED" : "MUTATING..."}
                   </p>
                   {error && (
-                    <p className="text-xs text-red-500 mt-2">{error}</p>
+                    <p className="text-xs text-red-400 mt-2 font-medium">
+                      {error}
+                    </p>
                   )}
                 </div>
               </div>
             ) : (
-              <img
-                src={result.mutatedImageUrl}
-                alt="Mutated NFT"
-                className="w-full h-full object-cover rounded-2xl shadow-xl"
-              />
+              <div className="relative w-full h-full group">
+                <img
+                  src={result.mutatedImageUrl}
+                  alt="Mutated NFT"
+                  className="w-full h-full object-cover rounded-2xl shadow-[0_8px_24px_rgba(37,150,190,0.2)] ring-1 ring-[#2596be]/20"
+                />
+                {/* Elegant hover overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#2596be]/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
+              </div>
             )}
           </div>
         </div>
 
-        {/* Mint button */}
-        <div className="p-6">
+        {/* Action buttons */}
+        <div className="p-4 space-y-2">
+          {/* Re-mutate button - only show when ready */}
+          {status === "ready" && (
+            <button
+              onClick={handleRemutate}
+              className="w-full py-2.5 rounded-xl font-medium text-xs tracking-wide text-[#2596be] bg-slate-700/50 hover:bg-slate-700 border border-[#2596be]/30 hover:border-[#2596be]/50 shadow-[0_2px_12px_rgba(37,150,190,0.15)] transition-all duration-300 hover:scale-[1.01] active:scale-[0.99]"
+            >
+              🔄 RE-MUTATE
+            </button>
+          )}
+
+          {/* Mint button with elite styling */}
           <button
             disabled={status !== "ready"}
             onClick={handleProceedToMint}
-            className={`w-full py-4 rounded-2xl font-bold text-lg text-white shadow-lg transition-all duration-300 ${
+            className={`w-full py-3 rounded-xl font-semibold text-sm tracking-wide text-white shadow-[0_4px_16px_rgba(37,150,190,0.25)] transition-all duration-300 relative overflow-hidden group ${
               status === "ready"
-                ? "bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 hover:shadow-2xl hover:scale-105 active:scale-95"
-                : "bg-gray-300 cursor-not-allowed"
+                ? "bg-[#2596be] hover:bg-[#1d7a9f] hover:shadow-[0_6px_24px_rgba(37,150,190,0.4)] hover:scale-[1.01] active:scale-[0.99]"
+                : "bg-gray-300 cursor-not-allowed opacity-60"
             }`}
           >
+            {/* Shimmer effect on hover */}
+            {status === "ready" && (
+              <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+            )}
+
             {status === "ready" ? (
-              <span className="flex flex-col items-center justify-center gap-1">
+              <span className="flex flex-col items-center justify-center gap-1 relative z-10">
                 <span className="flex items-center gap-2">
                   <svg
-                    className="w-5 h-5"
+                    className="w-4 h-4"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -175,14 +228,16 @@ export function MutationComponent({ nftData }: MutationComponentProps) {
                       clipRule="evenodd"
                     />
                   </svg>
-                  Mint Mutant
+                  MINT MUTANT
                 </span>
-                <span className="text-xs font-normal opacity-90">
-                  {mutationFee ? formatEther(mutationFee) : "0.00037"} ETH
+                <span className="text-[10px] font-medium opacity-90 tracking-wide">
+                  {mutationFee ? formatEther(mutationFee) : "0.00037"} ETH + GAS
                 </span>
               </span>
             ) : (
-              "Mutating..."
+              <span className="uppercase tracking-wider text-xs">
+                Mutating...
+              </span>
             )}
           </button>
         </div>
