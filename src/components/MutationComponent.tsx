@@ -33,6 +33,7 @@ export function MutationComponent({ nftData }: MutationComponentProps) {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [mintSuccessData, setMintSuccessData] =
     useState<MintSuccessData | null>(null);
+  const [isMinting, setIsMinting] = useState(false);
 
   const imageService = useMemo(() => new ImageGenerationService(), []);
 
@@ -132,7 +133,9 @@ Style: highly detailed digital illustration, cinematic lighting, 8K resolution, 
 
   const handleProceedToMint = async () => {
     try {
-      if (!result || status !== "ready") return;
+      if (!result || status !== "ready" || isMinting) return;
+
+      setIsMinting(true);
 
       // Trigger haptic feedback on mint button press
       try {
@@ -202,7 +205,20 @@ Style: highly detailed digital illustration, cinematic lighting, 8K resolution, 
         console.debug("Haptic feedback not available:", e);
       }
 
-      alert(err?.message || "Mint failed");
+      // Better error messages
+      let errorMessage = "Mint failed";
+      if (
+        err?.message?.includes("User rejected") ||
+        err?.message?.includes("rejected")
+      ) {
+        errorMessage = "Transaction cancelled";
+      } else if (err?.message) {
+        errorMessage = err.message;
+      }
+
+      alert(errorMessage);
+    } finally {
+      setIsMinting(false);
     }
   };
 
@@ -270,8 +286,8 @@ Style: highly detailed digital illustration, cinematic lighting, 8K resolution, 
 
         {/* Action buttons */}
         <div className="p-4 space-y-2">
-          {/* Re-mutate button - only show when ready */}
-          {status === "ready" && (
+          {/* Re-mutate button - only show when ready and not minting */}
+          {status === "ready" && !isMinting && (
             <button
               onClick={handleRemutate}
               className="w-full py-2.5 rounded-xl font-medium text-xs tracking-wide text-[#2596be] bg-slate-700/50 hover:bg-slate-700 border border-[#2596be]/30 hover:border-[#2596be]/50 shadow-[0_2px_12px_rgba(37,150,190,0.15)] transition-all duration-300 hover:scale-[1.01] active:scale-[0.99]"
@@ -282,20 +298,25 @@ Style: highly detailed digital illustration, cinematic lighting, 8K resolution, 
 
           {/* Mint button with elite styling */}
           <button
-            disabled={status !== "ready"}
+            disabled={status !== "ready" || isMinting}
             onClick={handleProceedToMint}
             className={`w-full py-3 rounded-xl font-semibold text-sm tracking-wide text-white shadow-[0_4px_16px_rgba(37,150,190,0.25)] transition-all duration-300 relative overflow-hidden group ${
-              status === "ready"
+              status === "ready" && !isMinting
                 ? "bg-[#2596be] hover:bg-[#1d7a9f] hover:shadow-[0_6px_24px_rgba(37,150,190,0.4)] hover:scale-[1.01] active:scale-[0.99]"
                 : "bg-gray-300 cursor-not-allowed opacity-60"
             }`}
           >
             {/* Shimmer effect on hover */}
-            {status === "ready" && (
+            {status === "ready" && !isMinting && (
               <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
             )}
 
-            {status === "ready" ? (
+            {isMinting ? (
+              <span className="flex items-center justify-center gap-2 relative z-10">
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                MINTING...
+              </span>
+            ) : status === "ready" ? (
               <span className="flex flex-col items-center justify-center gap-1 relative z-10">
                 <span className="flex items-center gap-2">
                   <svg
