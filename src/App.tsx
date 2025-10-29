@@ -31,7 +31,7 @@ export default function App() {
       <div className="container mx-auto py-6 px-4 max-w-md">
         <header className="text-center mb-6">
           <h1 className="text-2xl font-bold text-[#2596be] mb-1 tracking-tight drop-shadow-[0_2px_8px_rgba(37,150,190,0.3)]">
-            Mutant Warplet
+            Mutant Warplets
           </h1>
           <p className="text-[10px] text-[#2596be]/80 font-semibold tracking-widest uppercase">
             Evolve • Mutate • Mint

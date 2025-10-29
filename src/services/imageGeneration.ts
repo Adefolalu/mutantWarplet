@@ -76,7 +76,8 @@ Keep the base form and recognizable traits of the original character, but make e
 - Each version should have a different color scheme, tech style, and mutation intensity.
 - Incorporate unique futuristic enhancements such as plasma conduits, holographic armor, or neural cables.
 - Make the overall design aggressive, high-tech, and alive with cyberpunk energy.
-- Keep the background the SAME for all versions (exact composition), but apply subtle hue/saturation or lighting differences to complement each mutation.
+- Invert the background color or add a slime/fog effect to the background to create a more dramatic atmosphere.
+- Keep the background composition similar but with these atmospheric modifications.
 Style: highly detailed digital illustration, cinematic cyberpunk lighting, 8K resolution, sharp contrast, vivid colors.
 `,
               },

@@ -1,4 +1,4 @@
-# 🧬 Mutant Warplet - Setup Guide
+# 🧬 Mutant Warplets - Setup Guide
 
 AI-powered NFT mutation platform using Google Gemini API.
 

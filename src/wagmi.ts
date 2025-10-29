@@ -13,7 +13,7 @@ export const config = createConfig({
     injected(), // MetaMask, Rainbow, Coinbase Wallet browser extensions
     farcasterFrame(), // Farcaster Frame connector
     walletConnect({ projectId }), // WalletConnect
-    coinbaseWallet({ appName: "Mutant Warplet" }), // Coinbase Wallet
+    coinbaseWallet({ appName: "Mutant Warplets" }), // Coinbase Wallet
   ],
   transports: {
     [base.id]: http(),

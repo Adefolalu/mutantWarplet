@@ -38,7 +38,7 @@ contract MutantWarplets is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard {
 
     error IncorrectFee();
 
-    constructor(address initialOwner) ERC721("Mutant Warplets", "MWPLT") Ownable(initialOwner) {}
+    constructor(address initialOwner) ERC721("Mutant Warpletss", "MWPLT") Ownable(initialOwner) {}
 
     /**
      * @notice Mint a mutated NFT.
