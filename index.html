@@ -2,8 +2,45 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Create Mini App</title>
+    <meta
+      name="fc:frame"
+      content='{ 
+        "version": "next",
+        "imageUrl": "https://mwpt.vercel.app/image.png",
+        "button": {
+          "title": "Mutant Warplet",
+          "action": {
+            "type": "launch_miniapp",
+            "url": "https://mwpt.vercel.app",
+            "name": "Mutant Warplet",
+            "splashImageUrl": "https://mwpt.vercel.app/logo.png",
+            "splashBackgroundColor": "#1f2937"
+          }
+        }
+      }'
+    />
+
+    <meta
+      name="fc:frame-default-for-spa"
+      style="display: none"
+      content='{
+        "version": "next",
+        "imageUrl": "https://mwpt.vercel.app/image.png",
+        "button": {
+          "title": "Mutant Warplet",
+          "action": {
+            "type": "launch_miniapp",
+            "url": "https://mwpt.vercel.app",
+            "name": "Mutant Warplet",
+            "splashImageUrl": "https://mwpt.vercel.app/logo.jpg",
+            "splashBackgroundColor": "#1f2937"
+          }
+        }
+      }'
+    />
+    <title>Mutant Warplet</title>
   </head>
   <body>
     <div id="root"></div>
