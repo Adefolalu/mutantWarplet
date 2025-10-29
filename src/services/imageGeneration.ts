@@ -52,19 +52,29 @@ export class ImageGenerationService {
   }
 
   /**
-   * Builds the transformation prompt
+   * Builds the default negative prompt
    */
-  private buildPrompt(config: MutationConfig): string {
-    return `Transform this character into a cyberpunk mutant with ${config.level} modifications.
-Add realistic cybernetic enhancements, biopunk textures, and glowing neon tech details.
-Preserve the exact background, lighting, color palette, and original pose.
-Apply a mutation intensity of ${config.mutationPercent}%, keeping approximately ${config.preservePercent}% of original features recognizable.
-Render in a high-resolution, photorealistic, cinematic, gritty dystopian style.
-Avoid creating images that are blurry, low-quality, distorted, or deformed.
+  private getDefaultNegativePrompt(): string {
+    return `Avoid creating images that are blurry, low-quality, distorted, or deformed.
 Do not include extra or missing limbs, duplicated or disfigured features, or unrealistic anatomy.
 Avoid cartoonish, anime, or sketch-like styles.
 Exclude any watermarks, text, signatures, or logos.
 Ensure the background, color theme, and subject remain consistent with the original image.`;
+  }
+
+  /**
+   * Builds the transformation prompt
+   */
+  private buildPrompt(config: MutationConfig, negativePrompt?: string): string {
+    const mainPrompt = `Transform this character into a cyberpunk mutant with ${config.level} modifications.
+Add realistic cybernetic enhancements, biopunk textures, and glowing neon tech details.
+Preserve the exact background, lighting, color palette, and original pose.
+Apply a mutation intensity of ${config.mutationPercent}%, keeping approximately ${config.preservePercent}% of original features recognizable.
+Render in a high-resolution, photorealistic, cinematic, gritty dystopian style.`;
+
+    const negative = negativePrompt || this.getDefaultNegativePrompt();
+    
+    return `${mainPrompt}\n${negative}`;
   }
 
   /**
@@ -137,7 +147,7 @@ Ensure the background, color theme, and subject remain consistent with the origi
       // Determine mutation settings
       const strength = options.strength ?? 0.6;
       const mutationConfig = this.getMutationConfig(strength);
-      const prompt = options.prompt || this.buildPrompt(mutationConfig);
+      const prompt = options.prompt || this.buildPrompt(mutationConfig, options.negativePrompt);
 
       // Fetch and convert image
       const { base64, mimeType } = await this.fetchImageAsBase64(
