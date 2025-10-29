@@ -226,7 +226,7 @@ Style: highly detailed digital illustration, cinematic lighting, 8K resolution, 
     if (!mintSuccessData) return;
 
     try {
-      const miniAppUrl = window.location.origin;
+      const miniAppUrl = "https://mwpt.vercel.app";
       const text = `I just minted my ${mintSuccessData.name}! 🔥\n\nMutate your Warplet now on Mutant Warplet`;
 
       await sdk.actions.composeCast({
