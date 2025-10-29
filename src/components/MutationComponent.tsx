@@ -20,9 +20,19 @@ export function MutationComponent({ nftData }: MutationComponentProps) {
     imageGenerationService: "gemini";
   };
 
+  type MintSuccessData = {
+    hash: string;
+    tokenId?: bigint;
+    imageUri: string;
+    name: string;
+  };
+
   const [status, setStatus] = useState<MutationStatus>("pending");
   const [result, setResult] = useState<MutationResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [mintSuccessData, setMintSuccessData] =
+    useState<MintSuccessData | null>(null);
 
   const imageService = useMemo(() => new ImageGenerationService(), []);
 
@@ -152,9 +162,14 @@ export function MutationComponent({ nftData }: MutationComponentProps) {
         console.debug("Haptic feedback not available:", e);
       }
 
-      alert(
-        `Minted! Tx: ${hash}\nNew Token ID: ${tokenId !== undefined ? tokenId.toString() : "unknown"}`
-      );
+      // Show success modal
+      setMintSuccessData({
+        hash,
+        tokenId,
+        imageUri,
+        name,
+      });
+      setShowSuccessModal(true);
     } catch (err: any) {
       console.error("Mint flow failed:", err);
 
@@ -167,6 +182,27 @@ export function MutationComponent({ nftData }: MutationComponentProps) {
 
       alert(err?.message || "Mint failed");
     }
+  };
+
+  const handleShare = async () => {
+    if (!mintSuccessData) return;
+
+    try {
+      const miniAppUrl = window.location.origin;
+      const text = `I just minted my ${mintSuccessData.name}! 🔥\n\nMutate your Warplet now on Mutant Warplet`;
+
+      await sdk.actions.composeCast({
+        text,
+        embeds: [mintSuccessData.imageUri, miniAppUrl] as [string, string],
+      });
+    } catch (error) {
+      console.error("Failed to compose cast:", error);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setShowSuccessModal(false);
+    setMintSuccessData(null);
   };
 
   return (
@@ -266,6 +302,101 @@ export function MutationComponent({ nftData }: MutationComponentProps) {
           </button>
         </div>
       </div>
+
+      {/* Success Modal */}
+      {showSuccessModal && mintSuccessData && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-300">
+          <div className="bg-gradient-to-br from-slate-800/95 via-slate-900/95 to-[#1a5f7a]/90 rounded-3xl shadow-[0_8px_32px_rgba(37,150,190,0.4)] max-w-md w-full border border-[#2596be]/30 overflow-hidden">
+            {/* Top accent */}
+            <div className="h-[2px] bg-gradient-to-r from-transparent via-[#2596be] to-transparent"></div>
+
+            {/* Content */}
+            <div className="p-6 text-center">
+              {/* Success Icon */}
+              <div className="w-16 h-16 mx-auto mb-4 bg-[#2596be]/20 rounded-full flex items-center justify-center border-2 border-[#2596be]">
+                <svg
+                  className="w-8 h-8 text-[#2596be]"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              </div>
+
+              <h2 className="text-2xl font-bold text-[#2596be] mb-2">
+                Mint Successful!
+              </h2>
+
+              <p className="text-sm text-slate-300 mb-4">
+                {mintSuccessData.name}
+              </p>
+
+              {/* Minted Image */}
+              <div className="mb-6 rounded-2xl overflow-hidden border border-[#2596be]/30 shadow-lg">
+                <img
+                  src={mintSuccessData.imageUri}
+                  alt={mintSuccessData.name}
+                  className="w-full h-auto"
+                  onError={(e) => {
+                    // Fallback to mutated image if IPFS image fails to load
+                    if (result?.mutatedImageUrl) {
+                      (e.target as HTMLImageElement).src =
+                        result.mutatedImageUrl;
+                    }
+                  }}
+                />
+              </div>
+
+              {/* Transaction info */}
+              <div className="bg-slate-800/50 rounded-xl p-3 mb-4 text-xs">
+                <p className="text-slate-400 mb-1">Transaction Hash:</p>
+                <p className="text-[#2596be] font-mono break-all">
+                  {mintSuccessData.hash.slice(0, 10)}...
+                  {mintSuccessData.hash.slice(-8)}
+                </p>
+                {mintSuccessData.tokenId !== undefined && (
+                  <>
+                    <p className="text-slate-400 mt-2 mb-1">Token ID:</p>
+                    <p className="text-[#2596be] font-mono">
+                      #{mintSuccessData.tokenId.toString()}
+                    </p>
+                  </>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="space-y-2">
+                <button
+                  onClick={handleShare}
+                  className="w-full py-3 rounded-xl font-semibold text-sm text-white bg-[#2596be] hover:bg-[#1d7a9f] shadow-[0_4px_16px_rgba(37,150,190,0.3)] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
+                  </svg>
+                  Share on Farcaster
+                </button>
+
+                <button
+                  onClick={handleCloseModal}
+                  className="w-full py-2.5 rounded-xl font-medium text-sm text-[#2596be] bg-slate-700/50 hover:bg-slate-700 border border-[#2596be]/30 transition-all duration-300 hover:scale-[1.01] active:scale-[0.99]"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
