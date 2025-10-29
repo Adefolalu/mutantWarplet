@@ -71,7 +71,7 @@ export function MutationComponent({ nftData }: MutationComponentProps) {
       } catch (e: any) {
         if (cancelled) return;
         console.error("Mutation generation failed:", e);
-        setError(e?.message || "Failed to generate mutation");
+        setError("Unable to generate mutation. Please try again later.");
         setStatus("error");
       }
     }
@@ -83,6 +83,30 @@ export function MutationComponent({ nftData }: MutationComponentProps) {
   }, [nftData?.tokenId, imageService]);
 
   if (!nftData) return null;
+
+  const handleRetry = async () => {
+    setStatus("generating");
+    setError(null);
+
+    try {
+      const img = await imageService.generateMutatedImage({
+        prompt: "cyberpunk mutant",
+        imageUrl: nftData.image,
+        strength: 0.75,
+        negativePrompt: "",
+      });
+
+      setResult({
+        mutatedImageUrl: img.imageUrl,
+        imageGenerationService: img.service,
+      });
+      setStatus("ready");
+    } catch (e: any) {
+      console.error("Retry mutation failed:", e);
+      setError("Unable to generate mutation. Please try again later.");
+      setStatus("error");
+    }
+  };
 
   const handleRemutate = async () => {
     setStatus("generating");
@@ -120,13 +144,14 @@ Style: highly detailed digital illustration, cinematic lighting, 8K resolution, 
       setStatus("ready");
     } catch (e: any) {
       console.error("Re-mutation failed:", e);
-      setError(e?.message || "Failed to generate mutation");
+      setError("Unable to generate new mutation. Please try again later.");
       setStatus("error");
 
       // Restore previous result if re-mutation failed
       if (previousResult) {
         setResult(previousResult);
         setStatus("ready");
+        setError(null); // Clear error since we restored the previous result
       }
     }
   };
@@ -255,18 +280,45 @@ Style: highly detailed digital illustration, cinematic lighting, 8K resolution, 
           <div className="absolute inset-0 flex items-center justify-center p-8">
             {status !== "ready" || !result ? (
               <div className="w-full h-full bg-gradient-to-br from-slate-700/50 via-slate-800/50 to-[#1a5f7a]/50 rounded-2xl flex items-center justify-center border border-[#2596be]/20 backdrop-blur-sm">
-                <div className="text-center">
-                  <div className="relative inline-block mb-4">
-                    <div className="w-16 h-16 border-[3px] border-[#2596be]/30 rounded-full absolute"></div>
-                    <div className="w-16 h-16 border-[3px] border-[#2596be] border-t-transparent rounded-full animate-spin"></div>
-                  </div>
-                  <p className="text-sm font-semibold text-[#2596be] tracking-wide">
-                    {status === "error" ? "MUTATION FAILED" : "MUTATING..."}
-                  </p>
-                  {error && (
-                    <p className="text-xs text-red-400 mt-2 font-medium">
-                      {error}
-                    </p>
+                <div className="text-center px-4">
+                  {status === "error" ? (
+                    <>
+                      <div className="w-16 h-16 mx-auto mb-4 bg-red-500/10 rounded-full flex items-center justify-center border-2 border-red-500/30">
+                        <svg
+                          className="w-8 h-8 text-red-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                          />
+                        </svg>
+                      </div>
+                      <p className="text-sm font-semibold text-slate-300 mb-2">
+                        Mutation Failed
+                      </p>
+                      <p className="text-xs text-slate-400 mb-4">{error}</p>
+                      <button
+                        onClick={handleRetry}
+                        className="px-4 py-2 bg-[#2596be] hover:bg-[#1d7a9f] text-white text-xs font-semibold rounded-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                      >
+                        Try Again
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <div className="relative inline-block mb-4">
+                        <div className="w-16 h-16 border-[3px] border-[#2596be]/30 rounded-full absolute"></div>
+                        <div className="w-16 h-16 border-[3px] border-[#2596be] border-t-transparent rounded-full animate-spin"></div>
+                      </div>
+                      <p className="text-sm font-semibold text-[#2596be] tracking-wide">
+                        MUTATING...
+                      </p>
+                    </>
                   )}
                 </div>
               </div>
