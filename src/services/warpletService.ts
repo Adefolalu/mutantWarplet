@@ -13,40 +13,50 @@ export interface WarpletNFT {
   }>;
 }
 
+export interface NFTData {
+  tokenId: string;
+  name: string;
+  image: string;
+  metadata?: any;
+}
+
 /**
- * Fetch a specific Warplet by token ID (FID)
+ * Fetch a specific Warplet by token ID
  */
 export async function fetchWarpletByTokenId(
   tokenId: number
-): Promise<WarpletNFT | null> {
+): Promise<NFTData | null> {
   try {
-    const url = `https://base-mainnet.g.alchemy.com/nft/v3/${ALCHEMY_API_KEY}/getNFTMetadata?contractAddress=${WARPLET_CONTRACT}&tokenId=${tokenId}&refreshCache=false`;
+    const url = `https://base-mainnet.g.alchemy.com/nft/v3/${ALCHEMY_API_KEY}/getNFTMetadata`;
 
-    const response = await fetch(url, {
-      headers: {
-        accept: "application/json",
-      },
+    const params = new URLSearchParams({
+      contractAddress: WARPLET_CONTRACT,
+      tokenId: tokenId.toString(),
+      refreshCache: "false",
+    });
+
+    const response = await fetch(`${url}?${params}`, {
+      headers: { accept: "application/json" },
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch NFT: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-
-    if (data.error || !data.image) {
-      console.error("NFT not found or error:", data);
+      console.error(
+        `Failed to fetch Warplet: ${response.status} ${response.statusText}`
+      );
       return null;
     }
 
+    const metadata = await response.json();
+
     return {
-      tokenId: data.tokenId,
-      name: data.name || `Warplet #${tokenId}`,
-      description:
-        data.description || "A unique Warplet from the Farcaster ecosystem",
-      image: data.image.cachedUrl || data.image.originalUrl,
-      owner: null, // Will be checked separately
-      attributes: data.raw?.metadata?.attributes || [],
+      tokenId: tokenId.toString(),
+      name: metadata?.name || `Warplet #${tokenId}`,
+      image:
+        metadata?.image?.cachedUrl ||
+        metadata?.image?.originalUrl ||
+        metadata?.rawMetadata?.image ||
+        "",
+      metadata: metadata?.rawMetadata || {},
     };
   } catch (error) {
     console.error("Error fetching Warplet:", error);
@@ -62,25 +72,46 @@ export async function checkWarpletOwnership(
   tokenId: number
 ): Promise<boolean> {
   try {
-    // Precise per-token ownership check
-    const url = `https://base-mainnet.g.alchemy.com/nft/v3/${ALCHEMY_API_KEY}/getOwnersForToken?contractAddress=${WARPLET_CONTRACT}&tokenId=${tokenId}`;
+    // Use v2 API endpoint for getOwnersForToken
+    const url = `https://base-mainnet.g.alchemy.com/nft/v2/${ALCHEMY_API_KEY}/getOwnersForToken`;
 
-    const response = await fetch(url, {
+    const params = new URLSearchParams({
+      contractAddress: WARPLET_CONTRACT,
+      tokenId: tokenId.toString(),
+    });
+
+    const response = await fetch(`${url}?${params}`, {
       headers: { accept: "application/json" },
     });
 
-    if (!response.ok) return false;
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(
+        `Ownership check failed: ${response.status} ${response.statusText}`,
+        errorText
+      );
+      return false;
+    }
 
     const data = await response.json();
+    console.log("Ownership check response:", data);
 
-    // Alchemy typically returns an array of owners. Support common shapes.
+    // Alchemy v2 returns {"owners": ["0x..."]}
     const owners: string[] =
       (Array.isArray(data?.owners) && data.owners) ||
       (Array.isArray(data?.ownerAddresses) && data.ownerAddresses) ||
       [];
 
+    console.log("Extracted owners:", owners);
+    console.log("Checking against address:", ownerAddress);
+
     const target = ownerAddress.toLowerCase();
-    return owners.some((addr) => typeof addr === "string" && addr.toLowerCase() === target);
+    const isOwner = owners.some(
+      (addr) => typeof addr === "string" && addr.toLowerCase() === target
+    );
+
+    console.log("Ownership result:", isOwner);
+    return isOwner;
   } catch (error) {
     console.error("Error checking ownership:", error);
     return false;
