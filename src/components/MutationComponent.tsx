@@ -6,6 +6,7 @@ import { ImageGenerationService } from "../services/imageGeneration";
 import { useReadContract } from "wagmi";
 import { mutantWarplet } from "../constants/Abi";
 import { formatEther } from "viem";
+import { sdk } from "@farcaster/miniapp-sdk";
 
 interface MutationComponentProps {
   nftData?: NFTData;
@@ -101,6 +102,14 @@ export function MutationComponent({ nftData }: MutationComponentProps) {
     try {
       if (!result || status !== "ready") return;
 
+      // Trigger haptic feedback on mint button press
+      try {
+        await sdk.haptics.impactOccurred("medium");
+      } catch (e) {
+        // Haptics may not be available on all devices
+        console.debug("Haptic feedback not available:", e);
+      }
+
       // 1) Prepare image blob (handles data URLs and http URLs)
       const imageBlob = await blobFromUrl(result.mutatedImageUrl);
       // 2) Upload image to IPFS
@@ -136,11 +145,26 @@ export function MutationComponent({ nftData }: MutationComponentProps) {
         metadataURI: metadataUri,
       });
 
+      // Success haptic feedback
+      try {
+        await sdk.haptics.notificationOccurred("success");
+      } catch (e) {
+        console.debug("Haptic feedback not available:", e);
+      }
+
       alert(
         `Minted! Tx: ${hash}\nNew Token ID: ${tokenId !== undefined ? tokenId.toString() : "unknown"}`
       );
     } catch (err: any) {
       console.error("Mint flow failed:", err);
+
+      // Error haptic feedback
+      try {
+        await sdk.haptics.notificationOccurred("error");
+      } catch (e) {
+        console.debug("Haptic feedback not available:", e);
+      }
+
       alert(err?.message || "Mint failed");
     }
   };
@@ -231,7 +255,7 @@ export function MutationComponent({ nftData }: MutationComponentProps) {
                   MINT MUTANT
                 </span>
                 <span className="text-[10px] font-medium opacity-90 tracking-wide">
-                  {mutationFee ? formatEther(mutationFee) : "0.00037"} ETH + GAS
+                  {mutationFee ? formatEther(mutationFee) : "0.00037"} ETH
                 </span>
               </span>
             ) : (

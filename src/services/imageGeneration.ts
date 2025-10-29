@@ -70,7 +70,15 @@ export class ImageGenerationService {
                 },
               },
               {
-                text: `Transform this character into a HEAVILY MUTATED cyberpunk creature. Make DRAMATIC changes to the CHARACTER ONLY: add cybernetic implants, glowing neon circuits, biomechanical limbs, mutated features, electric energy effects, and futuristic tech enhancements. The character should look significantly different and more aggressive/cyberpunk. IMPORTANT: Keep the background EXACTLY the same but apply color inversion effect and increase saturation/vibrancy to make it pop. Only mutate the character, not the background.`,
+                text: `Transform this character into a HEAVILY MUTATED CYBERPUNK creature version #{n}.
+Keep the base form and recognizable traits of the original character, but make each mutation DISTINCT and UNIQUE:
+- Add varied cybernetic implants, biomechanical limbs, glowing neon patterns, and energy effects.
+- Each version should have a different color scheme, tech style, and mutation intensity.
+- Incorporate unique futuristic enhancements such as plasma conduits, holographic armor, or neural cables.
+- Make the overall design aggressive, high-tech, and alive with cyberpunk energy.
+- Keep the background the SAME for all versions (exact composition), but apply subtle hue/saturation or lighting differences to complement each mutation.
+Style: highly detailed digital illustration, cinematic cyberpunk lighting, 8K resolution, sharp contrast, vivid colors.
+`,
               },
             ],
           },
