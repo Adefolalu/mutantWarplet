@@ -15,8 +15,7 @@ export const mutationTypes: MutationType[] = [
     name: "Cyberpunk Evolution",
     description:
       "Transform into a futuristic cyberpunk character with neon enhancements",
-    prompt:
-      "Transform this character into a cyberpunk style with neon lights, futuristic implants, glowing eyes, high-tech accessories, dark urban background with holographic elements",
+    prompt: "cyberpunk mutant",
     cost: "0.01",
     rarity: "common",
   },
@@ -24,8 +23,7 @@ export const mutationTypes: MutationType[] = [
     id: "zombie",
     name: "Undead Mutation",
     description: "Convert to zombie with decay and horror elements",
-    prompt:
-      "Transform this character into a zombie with decaying skin, glowing red eyes, torn clothing, apocalyptic background, horror atmosphere",
+    prompt: "zombie mutant",
     cost: "0.015",
     rarity: "common",
   },
@@ -33,8 +31,7 @@ export const mutationTypes: MutationType[] = [
     id: "cosmic_horror",
     name: "Cosmic Horror",
     description: "Eldritch transformation with otherworldly features",
-    prompt:
-      "Transform this character into cosmic horror entity with tentacles, multiple eyes, otherworldly features, space background with galaxies and stars, eldritch atmosphere",
+    prompt: "cosmic horror mutant",
     cost: "0.025",
     rarity: "rare",
   },
@@ -42,8 +39,7 @@ export const mutationTypes: MutationType[] = [
     id: "dragon",
     name: "Dragon Metamorphosis",
     description: "Epic dragon transformation with scales and fire",
-    prompt:
-      "Transform this character into a dragon hybrid with scales, horns, wings, fire breath, medieval fantasy background, epic and majestic",
+    prompt: "dragon mutant",
     cost: "0.03",
     rarity: "rare",
   },
@@ -51,8 +47,7 @@ export const mutationTypes: MutationType[] = [
     id: "crystal_entity",
     name: "Crystal Entity",
     description: "Crystalline being with prismatic effects",
-    prompt:
-      "Transform this character into a crystal entity with gemstone skin, prismatic effects, rainbow reflections, crystalline background, magical aura",
+    prompt: "crystal mutant",
     cost: "0.05",
     rarity: "legendary",
   },
@@ -60,8 +55,7 @@ export const mutationTypes: MutationType[] = [
     id: "void_walker",
     name: "Void Walker",
     description: "Dark entity from the void realm",
-    prompt:
-      "Transform this character into a void walker with dark energy, shadow tendrils, purple/black aura, void background with swirling darkness, mysterious and powerful",
+    prompt: "void walker mutant",
     cost: "0.08",
     rarity: "legendary",
   },
@@ -76,7 +70,7 @@ export class GeminiMutationService {
     this.genAI = new GoogleGenerativeAI(apiKey);
     // Use the simpler, more available model
     this.model = this.genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.5-flash-image",
     });
   }
 
@@ -206,7 +200,7 @@ export class GeminiMutationService {
         Write a compelling 2-3 paragraph story explaining:
         - How the original NFT underwent this transformation
         - What triggered the mutation
-        - What new powers or abilities it gained
+        - What new powers or abilities it gained  
         - Its place in the mutated NFT ecosystem
         
         Make it dramatic and engaging, like a comic book origin story.
