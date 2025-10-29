@@ -38,7 +38,7 @@ export interface MutationState {
     traits: Record<string, string>;
     lore: string;
     mutatedImageUrl: string; // Add the generated image URL
-    imageGenerationService: "replicate" | "fallback";
+    imageGenerationService: "replicate" | "fallback" | "gemini";
     validation: {
       isValid: boolean;
       confidence: number;
