@@ -5,6 +5,7 @@ export interface ImageGenerationOptions {
   imageUrl?: string;
   strength?: number; // 0-1, how much to transform (0.3 = subtle, 0.8 = heavy)
   negativePrompt?: string;
+  customPrompt?: string; // Optional full custom prompt override
 }
 
 export interface ImageGenerationResult {
@@ -32,7 +33,7 @@ export class ImageGenerationService {
   async generateMutatedImage(
     options: ImageGenerationOptions
   ): Promise<ImageGenerationResult> {
-    const { imageUrl } = options;
+    const { imageUrl, customPrompt } = options;
 
     // If we have Gemini API, use it for native image generation
     if (this.geminiAI && imageUrl) {
@@ -59,6 +60,20 @@ export class ImageGenerationService {
 
         const mimeType = imageBlob.type || "image/jpeg";
 
+        // Use custom prompt if provided, otherwise use default
+        const promptText =
+          customPrompt ||
+          `Transform this character into a HEAVILY MUTATED CYBERPUNK creature version #{n}.
+Keep the base form and recognizable traits of the original character, but make each mutation DISTINCT and UNIQUE:
+- Add varied cybernetic implants, biomechanical limbs, glowing neon patterns, and energy effects.
+- Each version should have a different color scheme, tech style, and mutation intensity.
+- Incorporate unique futuristic enhancements such as plasma conduits, holographic armor, or neural cables.
+- Make the overall design aggressive, high-tech, and alive with cyberpunk energy.
+- Invert the background color or add a slime/fog effect to the background to create a more dramatic atmosphere.
+- Keep the background composition similar but with these atmospheric modifications.
+Style: highly detailed digital illustration, cinematic cyberpunk lighting, 8K resolution, sharp contrast, vivid colors.
+`;
+
         const contents = [
           {
             role: "user",
@@ -70,16 +85,7 @@ export class ImageGenerationService {
                 },
               },
               {
-                text: `Transform this character into a HEAVILY MUTATED CYBERPUNK creature version #{n}.
-Keep the base form and recognizable traits of the original character, but make each mutation DISTINCT and UNIQUE:
-- Add varied cybernetic implants, biomechanical limbs, glowing neon patterns, and energy effects.
-- Each version should have a different color scheme, tech style, and mutation intensity.
-- Incorporate unique futuristic enhancements such as plasma conduits, holographic armor, or neural cables.
-- Make the overall design aggressive, high-tech, and alive with cyberpunk energy.
-- Invert the background color or add a slime/fog effect to the background to create a more dramatic atmosphere.
-- Keep the background composition similar but with these atmospheric modifications.
-Style: highly detailed digital illustration, cinematic cyberpunk lighting, 8K resolution, sharp contrast, vivid colors.
-`,
+                text: promptText,
               },
             ],
           },

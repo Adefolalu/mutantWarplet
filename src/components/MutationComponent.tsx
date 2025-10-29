@@ -86,14 +86,30 @@ export function MutationComponent({ nftData }: MutationComponentProps) {
   const handleRemutate = async () => {
     setStatus("generating");
     setError(null);
+
+    // Store the current result before clearing it
+    const previousResult = result;
     setResult(null);
 
     try {
+      // Use the current mutated image if available, otherwise fall back to original
+      const sourceImage = previousResult?.mutatedImageUrl || nftData.image;
+
       const img = await imageService.generateMutatedImage({
-        prompt: "cyberpunk mutant",
-        imageUrl: nftData.image,
+        prompt: "cyberpunk mutant remix",
+        imageUrl: sourceImage,
         strength: 0.75,
         negativePrompt: "",
+        customPrompt: `Create an ALTERNATIVE CYBERPUNK MUTATION of this character with a completely different aesthetic.
+Keep the base form recognizable, but this time go in a DIFFERENT DIRECTION:
+- Use a completely different color palette (e.g., if previous was neon blue/purple, try toxic green/orange, crimson red/gold, or arctic white/cyan).
+- Change the mutation style: if previous had sleek tech, try organic biotech; if it had armor, try energy fields or neural networks.
+- Add different cybernetic enhancements: maybe eye augmentations, spine modifications, wing-like extensions, or holographic projections.
+- Experiment with different lighting: dark noir shadows, bright neon glow, or ethereal energy aura.
+- Dramatically alter the background atmosphere: toxic wasteland fog, digital matrix rain, bioluminescent spores, or cyberpunk city haze.
+- Make this version feel like a REMIX or ALTERNATE TIMELINE mutation - distinctly different but equally intense.
+Style: highly detailed digital illustration, cinematic lighting, 8K resolution, bold creative choices, vivid unique colors.
+`,
       });
 
       setResult({
@@ -105,6 +121,12 @@ export function MutationComponent({ nftData }: MutationComponentProps) {
       console.error("Re-mutation failed:", e);
       setError(e?.message || "Failed to generate mutation");
       setStatus("error");
+
+      // Restore previous result if re-mutation failed
+      if (previousResult) {
+        setResult(previousResult);
+        setStatus("ready");
+      }
     }
   };
 
