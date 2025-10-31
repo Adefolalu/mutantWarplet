@@ -6,7 +6,9 @@ import { createAppKit } from "@reown/appkit/react";
 import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
 
 // Get WalletConnect project ID from environment (optional)
-const projectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID;
+// Fallback to a demo id to avoid undefined issues in dev
+const projectId =
+  import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || "demo-project-id";
 
 // Set up the Wagmi adapter
 const wagmiAdapter = new WagmiAdapter({

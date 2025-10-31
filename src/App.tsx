@@ -11,21 +11,6 @@ import {
 } from "./services/warpletService";
 
 export default function App() {
-  useEffect(() => {
-    sdk.actions.ready();
-  }, []);
-
-  useEffect(() => {
-    async function addMiniApp() {
-      try {
-        await miniAppSdk.actions.addMiniApp();
-      } catch (error) {
-        console.debug("Failed to add mini app:", error);
-      }
-    }
-    addMiniApp();
-  }, []);
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-[#1a5f7a]">
       <div className="container mx-auto py-6 px-4 max-w-md">
@@ -62,15 +47,29 @@ function WarpletMutator() {
     checkMiniApp();
   }, []);
 
+  // Mini app lifecycle hooks: mark ready and suggest adding mini app
+  useEffect(() => {
+    async function onMiniAppReady() {
+      if (!isMiniApp) return;
+      try {
+        sdk.actions.ready();
+      } catch (e) {
+        console.debug("Mini app ready failed:", e);
+      }
+      try {
+        await miniAppSdk.actions.addMiniApp();
+      } catch (e) {
+        // Non-fatal if user dismisses or not supported
+        console.debug("Add mini app skipped:", e);
+      }
+    }
+    onMiniAppReady();
+  }, [isMiniApp]);
+
   // Auto-connect Farcaster wallet if in miniapp
   useEffect(() => {
     async function autoConnectFarcaster() {
-      if (
-        isMiniApp &&
-        farcasterContext.isSDKLoaded &&
-        !isConnected &&
-        !autoConnecting
-      ) {
+      if (isMiniApp && !isConnected && !autoConnecting) {
         setAutoConnecting(true);
         try {
           // Find the Farcaster connector
@@ -91,27 +90,35 @@ function WarpletMutator() {
     }
 
     autoConnectFarcaster();
-  }, [
-    isMiniApp,
-    farcasterContext.isSDKLoaded,
-    isConnected,
-    autoConnecting,
-    connectors,
-    connect,
-  ]);
+  }, [isMiniApp, isConnected, autoConnecting, connectors, connect]);
 
-  // Fetch the user's Warplet based on their FID
+  // Manual FID flow for browser (non-miniapp)
+  const [fidInput, setFidInput] = useState<string>("");
+  const [manualFid, setManualFid] = useState<number | null>(null);
+
+  const handleLoadByFid = () => {
+    const parsed = parseInt(fidInput.trim(), 10);
+    if (!isNaN(parsed) && parsed > 0) {
+      setManualFid(parsed);
+      setError(null);
+    }
+  };
+
+  // Fetch the user's Warplet based on their FID (Farcaster or manual)
   useEffect(() => {
     async function loadWarplet() {
-      // Wait for both Farcaster context and wallet connection
-      if (!farcasterContext.fid || !address || !isConnected) return;
+      const effectiveFid = isMiniApp
+        ? farcasterContext.fid
+        : (manualFid ?? undefined);
+      // Wait for both FID (miniapp or manual) and wallet connection
+      if (!effectiveFid || !address || !isConnected) return;
 
       setIsLoading(true);
       setError(null);
 
       try {
         // FID = tokenId for Warplets
-        const tokenId = farcasterContext.fid;
+        const tokenId = effectiveFid;
 
         // Check if user owns this Warplet
         const ownsWarplet = await checkWarpletOwnership(address, tokenId);
@@ -151,7 +158,7 @@ function WarpletMutator() {
     }
 
     loadWarplet();
-  }, [farcasterContext.fid, address, isConnected]);
+  }, [isMiniApp, manualFid, farcasterContext.fid, address, isConnected]);
 
   // Show loading state
   if (farcasterContext.isLoading || isLoading) {
@@ -282,6 +289,47 @@ function WarpletMutator() {
           <p className="text-xs text-[#2596be]/70 font-medium mt-4">
             Your FID: {farcasterContext.fid || "Loading..."}
           </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Browser flow: If connected but no FID (not in mini app), prompt for FID
+  if (isConnected && !isMiniApp && !warpletData) {
+    return (
+      <div className="w-full">
+        <div className="bg-gradient-to-br from-slate-800/95 via-slate-900/95 to-[#1a5f7a]/90 backdrop-blur-2xl rounded-3xl shadow-[0_8px_32px_rgba(37,150,190,0.25)] p-8 text-center border border-[#2596be]/30">
+          <h3 className="text-lg font-semibold text-[#2596be] mb-2">
+            Enter your Farcaster FID
+          </h3>
+          <p className="text-xs text-slate-400 mb-4">
+            We couldn't detect your Farcaster ID in the browser. Enter your FID
+            to load your Warplet, or open this app in Warpcast.
+          </p>
+          <div className="flex items-center gap-2 mb-4">
+            <input
+              type="number"
+              inputMode="numeric"
+              placeholder="e.g. 12345"
+              value={fidInput}
+              onChange={(e) => setFidInput(e.target.value)}
+              className="flex-1 px-3 py-2 rounded-lg bg-slate-800 text-slate-200 border border-[#2596be]/30 focus:outline-none focus:border-[#2596be]"
+            />
+            <button
+              onClick={handleLoadByFid}
+              className="px-4 py-2 rounded-lg bg-[#2596be] hover:bg-[#1d7a9f] text-white font-semibold text-sm transition-all"
+            >
+              Load
+            </button>
+          </div>
+          <a
+            href="https://warpcast.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block text-xs text-[#2596be] hover:text-[#1d7a9f] underline"
+          >
+            Open in Warpcast Mini App for auto-detect
+          </a>
         </div>
       </div>
     );
