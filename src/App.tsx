@@ -243,10 +243,43 @@ function WarpletMutator() {
     return (
       <div className="w-full">
         <div className="bg-gradient-to-br from-slate-800/95 via-slate-900/95 to-[#1a5f7a]/90 backdrop-blur-2xl rounded-3xl shadow-[0_8px_32px_rgba(37,150,190,0.25)] p-10 text-center border border-[#2596be]/30">
-          <p className="text-[#2596be] font-semibold mb-4 text-base">
+          <div className="w-16 h-16 mx-auto mb-4 bg-[#2596be]/10 rounded-full flex items-center justify-center border-2 border-[#2596be]/30">
+            <svg
+              className="w-8 h-8 text-[#2596be]"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
+              />
+            </svg>
+          </div>
+
+          <h3 className="text-xl font-bold text-[#2596be] mb-2">
+            Connect Wallet
+          </h3>
+          <p className="text-sm text-slate-400 mb-6">
             Connect your wallet to mutate your Warplet
           </p>
-          <p className="text-xs text-[#2596be]/70 font-medium">
+
+          {!isMiniApp ? (
+            <div className="space-y-4">
+              <w3m-button />
+              <div className="text-xs text-slate-500">
+                Click above to see all wallet options
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-slate-400">
+              Connecting wallet automatically...
+            </div>
+          )}
+
+          <p className="text-xs text-[#2596be]/70 font-medium mt-4">
             Your FID: {farcasterContext.fid || "Loading..."}
           </p>
         </div>
