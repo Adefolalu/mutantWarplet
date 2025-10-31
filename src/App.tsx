@@ -6,6 +6,7 @@ import { MutationComponent } from "./components/MutationComponent";
 import type { NFTData } from "./hooks/useMutation";
 import { useFarcasterContext } from "./hooks/useFarcasterContext";
 import { fetchUserWarplets, type WarpletNFT } from "./services/warpletService";
+import AdminPanel from "./components/AdminPanel";
 
 export default function App() {
   return (
@@ -19,6 +20,8 @@ export default function App() {
             Evolve • Mutate • Mint
           </p>
         </header>
+        {/* Owner-only admin panel (withdraw treasury). Renders null for non-owners. */}
+        <AdminPanel />
         <WarpletMutator />
       </div>
     </div>
