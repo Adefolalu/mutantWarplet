@@ -5,10 +5,7 @@ import { useAccount, useConnect } from "wagmi";
 import { MutationComponent } from "./components/MutationComponent";
 import type { NFTData } from "./hooks/useMutation";
 import { useFarcasterContext } from "./hooks/useFarcasterContext";
-import {
-  fetchWarpletByTokenId,
-  checkWarpletOwnership,
-} from "./services/warpletService";
+import { fetchUserWarplets, type WarpletNFT } from "./services/warpletService";
 
 export default function App() {
   return (
@@ -33,11 +30,16 @@ function WarpletMutator() {
   const { connect, connectors } = useConnect();
   const farcasterContext = useFarcasterContext();
   const [warpletData, setWarpletData] = useState<NFTData | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  const [error] = useState<string | null>(null);
   const [autoConnecting, setAutoConnecting] = useState(false);
   // null = detecting, true/false = resolved
   const [isMiniApp, setIsMiniApp] = useState<boolean | null>(null);
+
+  // Owned Warplets (by connected wallet)
+  const [ownedWarplets, setOwnedWarplets] = useState<WarpletNFT[]>([]);
+  const [ownedLoading, setOwnedLoading] = useState(false);
+  const [ownedError, setOwnedError] = useState<string | null>(null);
 
   // Check if running in Mini App
   useEffect(() => {
@@ -46,10 +48,7 @@ function WarpletMutator() {
       let isInMiniApp = false;
       try {
         // Some SDKs accept a timeout arg; if unsupported, this will be ignored
-        isInMiniApp =
-          (await (sdk as any).isInMiniApp?.(200)) ??
-          (await (sdk as any).isInMiniApp?.()) ??
-          false;
+        isInMiniApp = (await sdk.isInMiniApp()) ?? false;
       } catch {
         isInMiniApp = false;
       }
@@ -116,76 +115,39 @@ function WarpletMutator() {
     autoConnectFarcaster();
   }, [isMiniApp, isConnected, autoConnecting, connectors, connect]);
 
-  // Manual FID flow for browser (non-miniapp)
-  const [fidInput, setFidInput] = useState<string>("");
-  const [manualFid, setManualFid] = useState<number | null>(null);
-
-  const handleLoadByFid = () => {
-    const parsed = parseInt(fidInput.trim(), 10);
-    if (!isNaN(parsed) && parsed > 0) {
-      setManualFid(parsed);
-      setError(null);
-    }
-  };
-
-  // Fetch the user's Warplet based on their FID (Farcaster or manual)
+  // Fetch Warplets owned by connected wallet (works for primary/secondary owners)
   useEffect(() => {
-    async function loadWarplet() {
-      const effectiveFid = isMiniApp
-        ? farcasterContext.fid
-        : (manualFid ?? undefined);
-      // Wait for both FID (miniapp or manual) and wallet connection
-      if (!effectiveFid || !address || !isConnected) return;
-
-      setIsLoading(true);
-      setError(null);
-
+    async function loadOwnedWarplets() {
+      if (!isConnected || !address) return;
+      setOwnedLoading(true);
+      setOwnedError(null);
       try {
-        // FID = tokenId for Warplets
-        const tokenId = effectiveFid;
-
-        // Check if user owns this Warplet
-        const ownsWarplet = await checkWarpletOwnership(address, tokenId);
-
-        if (!ownsWarplet) {
-          setError(
-            `no_warplet:${tokenId}` // Special error code to show different UI
-          );
-          setIsLoading(false);
-          return;
+        const nfts = await fetchUserWarplets(address);
+        setOwnedWarplets(nfts);
+        // Auto-select if exactly one
+        if (nfts.length === 1) {
+          const w = nfts[0];
+          setWarpletData({
+            tokenId: w.tokenId,
+            contractAddress: "0x699727F9E01A822EFdcf7333073f0461e5914b4E",
+            name: w.name || `Warplet #${w.tokenId}`,
+            description: w.description || "",
+            image: w.image,
+            attributes: w.attributes || [],
+          });
         }
-
-        // Fetch the Warplet NFT data
-        const warplet = await fetchWarpletByTokenId(tokenId);
-
-        if (!warplet) {
-          setError(`Could not load Warplet #${tokenId}. Please try again.`);
-          setIsLoading(false);
-          return;
-        }
-
-        setWarpletData({
-          tokenId: warplet.tokenId,
-          contractAddress: "0x699727F9E01A822EFdcf7333073f0461e5914b4E",
-          name: warplet.name,
-          description: warplet.metadata?.description || "",
-          image: warplet.image,
-          attributes: warplet.metadata?.attributes || [],
-        });
-
-        setIsLoading(false);
-      } catch (err) {
-        console.error("Error loading Warplet:", err);
-        setError(err instanceof Error ? err.message : "Failed to load Warplet");
-        setIsLoading(false);
+      } catch (e) {
+        console.error("Failed to fetch owned Warplets:", e);
+        setOwnedError("Unable to load your Warplets. Please try again.");
+      } finally {
+        setOwnedLoading(false);
       }
     }
+    loadOwnedWarplets();
+  }, [isConnected, address]);
 
-    loadWarplet();
-  }, [isMiniApp, manualFid, farcasterContext.fid, address, isConnected]);
-
-  // Show loading state
-  if (farcasterContext.isLoading || isLoading) {
+  // Show loading state (context or owned warplets)
+  if (farcasterContext.isLoading || ownedLoading) {
     return (
       <div className="w-full">
         <div className="bg-gradient-to-br from-slate-800/95 via-slate-900/95 to-[#1a5f7a]/90 backdrop-blur-2xl rounded-3xl shadow-[0_8px_32px_rgba(37,150,190,0.25)] p-10 text-center border border-[#2596be]/30">
@@ -194,7 +156,7 @@ function WarpletMutator() {
             <div className="w-14 h-14 border-[3px] border-[#2596be] border-t-transparent rounded-full animate-spin"></div>
           </div>
           <p className="text-sm font-semibold text-[#2596be] tracking-wide">
-            Loading your Warplet...
+            Loading your Warplets...
           </p>
         </div>
       </div>
@@ -344,42 +306,121 @@ function WarpletMutator() {
     );
   }
 
-  // Browser flow: If connected but no FID (not in mini app), prompt for FID
-  if (isConnected && !isMiniApp && !warpletData) {
+  // If connected but no Warplet selected yet, render selection or empty state (no manual token id)
+  if (isConnected && !warpletData) {
     return (
       <div className="w-full">
-        <div className="bg-gradient-to-br from-slate-800/95 via-slate-900/95 to-[#1a5f7a]/90 backdrop-blur-2xl rounded-3xl shadow-[0_8px_32px_rgba(37,150,190,0.25)] p-8 text-center border border-[#2596be]/30">
-          <h3 className="text-lg font-semibold text-[#2596be] mb-2">
-            Enter your Farcaster FID
-          </h3>
-          <p className="text-xs text-slate-400 mb-4">
-            We couldn't detect your Farcaster ID in the browser. Enter your FID
-            to load your Warplet, or open this app in Warpcast.
-          </p>
-          <div className="flex items-center gap-2 mb-4">
-            <input
-              type="number"
-              inputMode="numeric"
-              placeholder="e.g. 12345"
-              value={fidInput}
-              onChange={(e) => setFidInput(e.target.value)}
-              className="flex-1 px-3 py-2 rounded-lg bg-slate-800 text-slate-200 border border-[#2596be]/30 focus:outline-none focus:border-[#2596be]"
-            />
-            <button
-              onClick={handleLoadByFid}
-              className="px-4 py-2 rounded-lg bg-[#2596be] hover:bg-[#1d7a9f] text-white font-semibold text-sm transition-all"
-            >
-              Load
-            </button>
-          </div>
-          <a
-            href="https://warpcast.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block text-xs text-[#2596be] hover:text-[#1d7a9f] underline"
-          >
-            Open in Warpcast Mini App for auto-detect
-          </a>
+        <div className="bg-gradient-to-br from-slate-800/95 via-slate-900/95 to-[#1a5f7a]/90 backdrop-blur-2xl rounded-3xl shadow-[0_8px_32px_rgba(37,150,190,0.25)] p-6 border border-[#2596be]/30">
+          {ownedError ? (
+            <div className="text-center">
+              <p className="text-sm text-slate-300 mb-4">{ownedError}</p>
+              <button
+                onClick={async () => {
+                  if (!address) return;
+                  setOwnedLoading(true);
+                  setOwnedError(null);
+                  try {
+                    const nfts = await fetchUserWarplets(address);
+                    setOwnedWarplets(nfts);
+                    if (nfts.length === 1) {
+                      const w = nfts[0];
+                      setWarpletData({
+                        tokenId: w.tokenId,
+                        contractAddress:
+                          "0x699727F9E01A822EFdcf7333073f0461e5914b4E",
+                        name: w.name || `Warplet #${w.tokenId}`,
+                        description: w.description || "",
+                        image: w.image,
+                        attributes: w.attributes || [],
+                      });
+                    }
+                  } catch (e) {
+                    console.error(e);
+                    setOwnedError(
+                      "Unable to load your Warplets. Please try again."
+                    );
+                  } finally {
+                    setOwnedLoading(false);
+                  }
+                }}
+                className="inline-flex items-center px-4 py-2 rounded-lg bg-[#2596be] text-white hover:bg-[#1f83a6] transition-colors"
+              >
+                Try again
+              </button>
+            </div>
+          ) : ownedWarplets.length === 0 ? (
+            <div className="text-center">
+              <h3 className="text-xl font-bold text-[#2596be] mb-2">
+                No Warplet found
+              </h3>
+              <p className="text-sm text-slate-400 mb-2">
+                We couldn’t find a Warplet in this wallet.
+              </p>
+              {isMiniApp ? (
+                <p className="text-xs text-slate-500">
+                  This mini app uses your Warpcast wallet. If your Warplet is in
+                  a different wallet
+                </p>
+              ) : (
+                <p className="text-xs text-slate-500">
+                  Connect the wallet that owns your Warplet.
+                </p>
+              )}
+            </div>
+          ) : ownedWarplets.length > 1 ? (
+            <div>
+              <h3 className="text-lg font-semibold text-[#2596be] mb-4">
+                Select a Warplet to mutate
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {ownedWarplets.map((nft) => (
+                  <button
+                    key={nft.tokenId}
+                    onClick={() =>
+                      setWarpletData({
+                        tokenId: nft.tokenId,
+                        contractAddress:
+                          "0x699727F9E01A822EFdcf7333073f0461e5914b4E",
+                        name: nft.name || `Warplet #${nft.tokenId}`,
+                        description: nft.description || "",
+                        image: nft.image,
+                        attributes: nft.attributes || [],
+                      })
+                    }
+                    className="group overflow-hidden rounded-xl border border-slate-700/60 hover:border-[#2596be]/60 transition-colors"
+                  >
+                    <div className="aspect-square bg-slate-900/50">
+                      {nft.image ? (
+                        <img
+                          src={nft.image}
+                          alt={nft.name || `Warplet #${nft.tokenId}`}
+                          className="w-full h-full object-cover transition-transform group-hover:scale-[1.02]"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-slate-500 text-xs">
+                          No image
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-2 text-left">
+                      <div className="text-sm text-slate-200 truncate">
+                        {nft.name || `Warplet #${nft.tokenId}`}
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        ID: {nft.tokenId}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            // If exactly one, we likely already auto-selected; render a subtle message
+            <div className="text-center text-slate-400 text-sm">
+              Preparing your Warplet…
+            </div>
+          )}
         </div>
       </div>
     );
