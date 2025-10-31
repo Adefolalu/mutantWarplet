@@ -36,12 +36,23 @@ function WarpletMutator() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [autoConnecting, setAutoConnecting] = useState(false);
-  const [isMiniApp, setIsMiniApp] = useState(false);
+  // null = detecting, true/false = resolved
+  const [isMiniApp, setIsMiniApp] = useState<boolean | null>(null);
 
   // Check if running in Mini App
   useEffect(() => {
     async function checkMiniApp() {
-      const isInMiniApp = await sdk.isInMiniApp();
+      // Use a small timeout to allow context comms and avoid flicker
+      let isInMiniApp = false;
+      try {
+        // Some SDKs accept a timeout arg; if unsupported, this will be ignored
+        isInMiniApp =
+          (await (sdk as any).isInMiniApp?.(200)) ??
+          (await (sdk as any).isInMiniApp?.()) ??
+          false;
+      } catch {
+        isInMiniApp = false;
+      }
       setIsMiniApp(isInMiniApp);
     }
     checkMiniApp();
@@ -69,17 +80,30 @@ function WarpletMutator() {
   // Auto-connect Farcaster wallet if in miniapp
   useEffect(() => {
     async function autoConnectFarcaster() {
-      if (isMiniApp && !isConnected && !autoConnecting) {
+      if (isMiniApp === true && !isConnected && !autoConnecting) {
         setAutoConnecting(true);
         try {
-          // Find the Farcaster connector
-          const farcasterConnector = connectors.find(
-            (connector) => connector.id === "farcasterFrame"
-          );
-
-          if (farcasterConnector) {
-            console.log("Auto-connecting Farcaster wallet in Mini App...");
-            await connect({ connector: farcasterConnector });
+          // Retry a few times in case connector registry isn't ready yet
+          for (let attempt = 0; attempt < 3 && !isConnected; attempt++) {
+            const farcasterConnector = connectors.find(
+              (connector) => connector.id === "farcasterFrame"
+            );
+            if (farcasterConnector) {
+              console.log(
+                "Auto-connecting Farcaster wallet in Mini App... (attempt",
+                attempt + 1,
+                ")"
+              );
+              try {
+                await connect({ connector: farcasterConnector });
+                break;
+              } catch (e) {
+                // transient error, retry shortly
+                await new Promise((r) => setTimeout(r, 400));
+              }
+            } else {
+              await new Promise((r) => setTimeout(r, 400));
+            }
           }
         } catch (error) {
           console.error("Auto-connect failed:", error);
@@ -247,6 +271,44 @@ function WarpletMutator() {
 
   // Show wallet connection prompt
   if (!isConnected) {
+    // While detecting environment, avoid flashing the browser connect UI
+    if (isMiniApp === null) {
+      return (
+        <div className="w-full">
+          <div className="bg-gradient-to-br from-slate-800/95 via-slate-900/95 to-[#1a5f7a]/90 backdrop-blur-2xl rounded-3xl shadow-[0_8px_32px_rgba(37,150,190,0.25)] p-10 text-center border border-[#2596be]/30">
+            <div className="relative inline-block mb-4">
+              <div className="w-14 h-14 border-[3px] border-[#2596be]/30 rounded-full absolute"></div>
+              <div className="w-14 h-14 border-[3px] border-[#2596be] border-t-transparent rounded-full animate-spin"></div>
+            </div>
+            <p className="text-sm text-slate-300">Preparing environment...</p>
+          </div>
+        </div>
+      );
+    }
+
+    // Mini app: show a minimal auto-connecting card (no Connect Wallet heading)
+    if (isMiniApp === true) {
+      return (
+        <div className="w-full">
+          <div className="bg-gradient-to-br from-slate-800/95 via-slate-900/95 to-[#1a5f7a]/90 backdrop-blur-2xl rounded-3xl shadow-[0_8px_32px_rgba(37,150,190,0.25)] p-10 text-center border border-[#2596be]/30">
+            <div className="relative inline-block mb-4">
+              <div className="w-14 h-14 border-[3px] border-[#2596be]/30 rounded-full absolute"></div>
+              <div className="w-14 h-14 border-[3px] border-[#2596be] border-t-transparent rounded-full animate-spin"></div>
+            </div>
+            <p className="text-sm text-slate-300 mb-1">
+              Connecting Warpcast wallet...
+            </p>
+            {farcasterContext.fid && (
+              <p className="text-xs text-[#2596be]/80">
+                FID: {farcasterContext.fid}
+              </p>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // Browser: show AppKit button
     return (
       <div className="w-full">
         <div className="bg-gradient-to-br from-slate-800/95 via-slate-900/95 to-[#1a5f7a]/90 backdrop-blur-2xl rounded-3xl shadow-[0_8px_32px_rgba(37,150,190,0.25)] p-10 text-center border border-[#2596be]/30">
@@ -265,30 +327,18 @@ function WarpletMutator() {
               />
             </svg>
           </div>
-
           <h3 className="text-xl font-bold text-[#2596be] mb-2">
             Connect Wallet
           </h3>
           <p className="text-sm text-slate-400 mb-6">
             Connect your wallet to mutate your Warplet
           </p>
-
-          {!isMiniApp ? (
-            <div className="space-y-4">
-              <w3m-button />
-              <div className="text-xs text-slate-500">
-                Click above to see all wallet options
-              </div>
+          <div className="space-y-4">
+            <w3m-button />
+            <div className="text-xs text-slate-500">
+              Click above to see all wallet options
             </div>
-          ) : (
-            <div className="text-sm text-slate-400">
-              Connecting wallet automatically...
-            </div>
-          )}
-
-          <p className="text-xs text-[#2596be]/70 font-medium mt-4">
-            Your FID: {farcasterContext.fid || "Loading..."}
-          </p>
+          </div>
         </div>
       </div>
     );
