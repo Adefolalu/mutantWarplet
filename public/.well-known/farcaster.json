@@ -14,5 +14,8 @@
     "splashImageUrl": "https://mwpt.vercel.app/splash.jpg",
     "splashBackgroundColor": "#2596be",
     "webhookUrl": "https://mwpt.vercel.app/api/webhook"
+  },
+  "baseBuilder": {
+    "ownerAddress": "0x02a9093dEB73E9E524657492429377117C70e097"
   }
 }
