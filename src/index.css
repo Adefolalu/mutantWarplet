@@ -12,4 +12,8 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
+
+  --background: #fbc8d1;
+  --foreground: #333333;
+  --secondary-bg: #feface;
 }

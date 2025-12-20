@@ -125,15 +125,14 @@ export function MutationComponent({ nftData }: MutationComponentProps) {
         imageUrl: sourceImage,
         strength: 0.75,
         negativePrompt: "",
-        customPrompt: `Create an ALTERNATIVE CYBERPUNK MUTATION of this character with a completely different aesthetic.
-Keep the base form recognizable, but this time go in a DIFFERENT DIRECTION:
-- Use a completely different color palette (e.g., if previous was neon blue/purple, try toxic green/orange, crimson red/gold, or arctic white/cyan).
-- Change the mutation style: if previous had sleek tech, try organic biotech; if it had armor, try energy fields or neural networks.
-- Add different cybernetic enhancements: maybe eye augmentations, spine modifications, wing-like extensions, or holographic projections.
-- Experiment with different lighting: dark noir shadows, bright neon glow, or ethereal energy aura.
-- Dramatically alter the background atmosphere: toxic wasteland fog, digital matrix rain, bioluminescent spores, or cyberpunk city haze.
-- Make this version feel like a REMIX or ALTERNATE TIMELINE mutation - distinctly different but equally intense.
-Style: highly detailed digital illustration, cinematic lighting, 8K resolution, bold creative choices, vivid unique colors.
+        customPrompt: `Create an ALTERNATIVE DONUT MUTATION of this donut with a completely different aesthetic.
+Keep the round donut shape, but this time go in a DIFFERENT DIRECTION:
+- Use a completely different color palette (e.g., if previous was chocolate/sprinkles, try neon glaze/gummy worms, or matcha/gold flakes).
+- Change the topping style: if previous had classic sprinkles, try crushed cookies, fruit slices, or edible glitter.
+- Experiment with different doughs: classic golden, dark chocolate, red velvet, or blue moon.
+- Dramatically alter the background atmosphere to match the new flavor profile.
+- Make this version feel like a REMIX or ALTERNATE FLAVOR - distinctly different but equally delicious.
+Style: highly detailed food photography, cinematic lighting, 8K resolution, bold creative choices, vivid unique colors.
 `,
       });
 

@@ -18,8 +18,8 @@ export class ImageGenerationService {
   private geminiAI: GoogleGenAI | null = null;
   private apiKey: string | null = null;
 
-  constructor() {
-    this.apiKey = import.meta.env.VITE_GEMINI_API_KEY || null;
+  constructor(apiKey?: string) {
+    this.apiKey = apiKey || import.meta.env.VITE_GEMINI_API_KEY || null;
     if (this.apiKey) {
       this.geminiAI = new GoogleGenAI({
         apiKey: this.apiKey,
@@ -63,15 +63,13 @@ export class ImageGenerationService {
         // Use custom prompt if provided, otherwise use default
         const promptText =
           customPrompt ||
-          `Transform this character into a HEAVILY MUTATED CYBERPUNK creature version #{n}.
-Keep the base form and recognizable traits of the original character, but make each mutation DISTINCT and UNIQUE:
-- Add varied cybernetic implants, biomechanical limbs, glowing neon patterns, and energy effects.
-- Each version should have a different color scheme, tech style, and mutation intensity.
-- Incorporate unique futuristic enhancements such as plasma conduits, holographic armor, or neural cables.
-- Make the overall design aggressive, high-tech, and alive with cyberpunk energy.
-- Invert the background color or add a slime/fog effect to the background to create a more dramatic atmosphere.
-- Keep the background composition similar but with these atmospheric modifications.
-Style: highly detailed digital illustration, cinematic cyberpunk lighting, 8K resolution, sharp contrast, vivid colors.
+          `Transform this base donut into a unique, delicious custom donut.
+Keep the round donut shape but completely change the toppings, glaze, and style:
+- Add creative glazes (chocolate, strawberry, galaxy, slime, metallic).
+- Add unique toppings (sprinkles, candies, gold flakes, fruits, tech parts).
+- Change the dough type (classic, chocolate, red velvet, matcha).
+- Update the background to match the theme of the donut.
+Style: highly detailed food photography, vibrant colors, appetizing, 8K resolution.
 `;
 
         const contents = [

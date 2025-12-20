@@ -1,9 +1,11 @@
-import { sdk } from "@farcaster/frame-sdk";
+import { sdk } from "@farcaster/miniapp-sdk";
 import { useEffect, useState } from "react";
 
 export interface FarcasterContext {
   fid: number | null;
   username: string | null;
+  displayName: string | null;
+  pfpUrl: string | null;
   isLoading: boolean;
   isSDKLoaded: boolean;
   error: string | null;
@@ -13,6 +15,8 @@ export function useFarcasterContext() {
   const [context, setContext] = useState<FarcasterContext>({
     fid: null,
     username: null,
+    displayName: null,
+    pfpUrl: null,
     isLoading: true,
     isSDKLoaded: false,
     error: null,
@@ -27,6 +31,8 @@ export function useFarcasterContext() {
           setContext({
             fid: ctx.user.fid,
             username: ctx.user.username || null,
+            displayName: (ctx.user as any).displayName || null,
+            pfpUrl: (ctx.user as any).pfpUrl || null,
             isLoading: false,
             isSDKLoaded: true,
             error: null,
@@ -35,6 +41,8 @@ export function useFarcasterContext() {
           setContext({
             fid: null,
             username: null,
+            displayName: null,
+            pfpUrl: null,
             isLoading: false,
             isSDKLoaded: true,
             error: "No Farcaster user context found",
@@ -45,6 +53,8 @@ export function useFarcasterContext() {
         setContext({
           fid: null,
           username: null,
+          displayName: null,
+          pfpUrl: null,
           isLoading: false,
           isSDKLoaded: false,
           error: error instanceof Error ? error.message : "Unknown error",

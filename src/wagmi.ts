@@ -1,4 +1,4 @@
-import { farcasterFrame } from "@farcaster/frame-wagmi-connector";
+import { farcasterMiniApp } from "@farcaster/miniapp-wagmi-connector";
 import { http, createConfig } from "wagmi";
 import { base } from "wagmi/chains";
 import { injected, walletConnect, coinbaseWallet } from "@wagmi/connectors";
@@ -22,8 +22,8 @@ export const appKit = createAppKit({
   networks: [base],
   projectId,
   metadata: {
-    name: "Mutant Warplets",
-    description: "Mutate your Warplet into cyberpunk creatures",
+    name: "Donut Bakery",
+    description: "bake, customize, and mint your own donuts!",
     url: typeof window !== "undefined" ? window.location.origin : "",
     icons: [],
   },
@@ -39,9 +39,9 @@ export const config = createConfig({
   chains: [base],
   connectors: [
     injected(), // MetaMask, Rainbow, Coinbase Wallet browser extensions
-    farcasterFrame(), // Farcaster Frame connector
+    farcasterMiniApp(), // Farcaster MiniApp connector
     walletConnect({ projectId }), // WalletConnect
-    coinbaseWallet({ appName: "Mutant Warplets" }), // Coinbase Wallet
+    coinbaseWallet({ appName: "Donut Bakery" }), // Coinbase Wallet
   ],
   transports: {
     [base.id]: http(),
